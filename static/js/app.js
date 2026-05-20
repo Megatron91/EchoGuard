@@ -83,8 +83,8 @@ drawSilence();
 // Initialize Backend Host Input
 let savedHost = localStorage.getItem("aiva_backend_host");
 if (!savedHost || savedHost.includes("appwrite.network")) {
-    // Force default to local backend if running on Appwrite static hosting
-    savedHost = "127.0.0.1:8080";
+    // Default to the Render cloud backend if not explicitly set
+    savedHost = "aiva-engine.onrender.com";
 }
 if (backendHostInput) {
     backendHostInput.value = savedHost;
@@ -115,7 +115,7 @@ function getBackendUrls(host) {
 
 // Initialize WebSocket Connection
 function initWebSocket() {
-    const host = localStorage.getItem("aiva_backend_host") || "127.0.0.1:8080";
+    const host = localStorage.getItem("aiva_backend_host") || "aiva-engine.onrender.com";
     const { wsUrl } = getBackendUrls(host);
     
     appendLog("System", `Connecting to AIVA server (${wsUrl})...`, "system-msg");
@@ -563,7 +563,7 @@ btnPlaySample.addEventListener("click", async () => {
     appendLog("Simulation", `Triggering audio play sample: ${filename}`, "system-msg");
     
     // Play audio locally through browser speakers so user can hear it
-    const host = localStorage.getItem("aiva_backend_host") || "127.0.0.1:8080";
+    const host = localStorage.getItem("aiva_backend_host") || "aiva-engine.onrender.com";
     const { baseUrl } = getBackendUrls(host);
     const url = `${baseUrl}/api/samples/${filename}`;
     audioPlayer.src = url;
