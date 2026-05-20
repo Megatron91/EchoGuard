@@ -82,8 +82,9 @@ drawSilence();
 
 // Initialize Backend Host Input
 let savedHost = localStorage.getItem("aiva_backend_host");
-if (!savedHost) {
-    savedHost = window.location.host || "127.0.0.1:8080";
+if (!savedHost || savedHost.includes("appwrite.network")) {
+    // Force default to local backend if running on Appwrite static hosting
+    savedHost = "127.0.0.1:8080";
 }
 if (backendHostInput) {
     backendHostInput.value = savedHost;
@@ -97,11 +98,21 @@ if (backendHostInput) {
     });
 }
 
+// Helper to construct backend URLs correctly avoiding mixed-content/SSL errors for localhost
+function getBackendUrls(host) {
+    const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+    const wsProtocol = (window.location.protocol === "https:" && !isLocal) ? "wss:" : "ws:";
+    const httpProtocol = (window.location.protocol === "https:" && !isLocal) ? "https:" : "http:";
+    return {
+        wsUrl: `${wsProtocol}//${host}/ws`,
+        baseUrl: `${httpProtocol}//${host}`
+    };
+}
+
 // Initialize WebSocket Connection
 function initWebSocket() {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = localStorage.getItem("aiva_backend_host") || window.location.host || "127.0.0.1:8080";
-    const wsUrl = `${protocol}//${host}/ws`;
+    const host = localStorage.getItem("aiva_backend_host") || "127.0.0.1:8080";
+    const { wsUrl } = getBackendUrls(host);
     
     appendLog("System", `Connecting to AIVA server (${wsUrl})...`, "system-msg");
     
@@ -548,9 +559,8 @@ btnPlaySample.addEventListener("click", async () => {
     appendLog("Simulation", `Triggering audio play sample: ${filename}`, "system-msg");
     
     // Play audio locally through browser speakers so user can hear it
-    const host = localStorage.getItem("aiva_backend_host") || window.location.host || "127.0.0.1:8080";
-    const httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
-    const baseUrl = `${httpProtocol}//${host}`;
+    const host = localStorage.getItem("aiva_backend_host") || "127.0.0.1:8080";
+    const { baseUrl } = getBackendUrls(host);
     const url = `${baseUrl}/api/samples/${filename}`;
     audioPlayer.src = url;
     audioPlayer.play();
