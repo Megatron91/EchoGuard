@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Personal Safety Audio Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <!-- Alarm Overlay for visual flashing alerts -->
+    <div id="alarm-overlay"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="logo">
+                <h1>Aegis<span class="accent-text">Sound</span></h1>
+            </div>
+            <div class="sys-status">
+                <span class="status-dot green" id="sys-status-dot"></span>
+                <span id="sys-status-text">System Ready</span>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="dashboard-grid">
+            <!-- Left Column: Waveform, Spectrogram, Controls -->
+            <section class="left-panel">
+                <!-- Monitor Panel -->
+                <div class="glass-card monitor-card">
+                    <div class="card-header">
+                        <h2>Environment Monitoring</h2>
+                        <span class="badge" id="recording-badge">Idle</span>
+                    </div>
+                    
+                    <div class="visualizer-container">
+                        <canvas id="waveform-canvas"></canvas>
+                        <div class="status-overlay" id="status-overlay">
+                            <div class="pulse-ring"></div>
+                            <p class="status-msg" id="status-msg">Click START to monitor environment</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-actions">
+                        <button id="btn-browser-mic" class="btn primary">Start Mic Monitor</button>
+                        <button id="btn-local-mic" class="btn secondary">Start Python Local Mic</button>
+                        <button id="btn-stop" class="btn danger" disabled>Stop</button>
+                    </div>
+                </div>
+
+                <!-- Simulation & Samples Panel -->
+                <div class="glass-card controls-card">
+                    <div class="card-header">
+                        <h2>Demo & Threat Simulation</h2>
+                    </div>
+                    <div class="simulation-controls">
+                        <div class="control-group">
+                            <label>Simulate Speech Wake Phrase</label>
+                            <div class="phrase-buttons">
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="HELP ME">"HELP ME"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="EMERGENCY">"EMERGENCY"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="CODE RED">"CODE RED"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="INTRUDER">"INTRUDER"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="POLICE">"POLICE"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="FIRE">"FIRE"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="ATTACK">"ATTACK"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="DANGER">"DANGER"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="SOS">"SOS"</button>
+                                <button class="btn btn-sm btn-outline simulated-phrase" data-phrase="STOP">"STOP"</button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label>Play Threat & Control Samples</label>
+                            <div class="samples-select-container">
+                                <select id="samples-select" class="form-select">
+                                    <option value="" disabled selected>Select audio sample...</option>
+                                    <optgroup label="Synthetic / Simulation">
+                                        <option value="scream.wav">Scream / Panic (scream.wav)</option>
+                                        <option value="glass_shatter.wav">Glass Breaking (glass_shatter.wav)</option>
+                                        <option value="gunshot.wav">Gunshot Simulation (gunshot.wav)</option>
+                                        <option value="crying.wav">Sobbing / Distress (crying.wav)</option>
+                                        <option value="police_siren.wav">Police Siren (police_siren.wav)</option>
+                                        <option value="industrial_alarm.wav">Industrial Alarm (industrial_alarm.wav)</option>
+                                        <option value="silence.wav">Silence / Ambient (silence.wav)</option>
+                                    </optgroup>
+                                    <optgroup label="Real-World Threat Recordings">
+                                        <option value="real_baby_crying.wav">Real Baby Crying (114s)</option>
+                                        <option value="real_woman_screaming.wav">Real Woman Screaming (35s)</option>
+                                        <option value="real_man_screaming.wav">Real Man Screaming (19s)</option>
+                                        <option value="real_child_crying.wav">Real Child Crying (15s)</option>
+                                        <option value="real_woman_crying.wav">Real Woman Crying (10s)</option>
+                                    </optgroup>
+                                    <optgroup label="Positive Controls (Normal Sounds)">
+                                        <option value="normal_forest.wav">Forest Ambience & Birds (15s)</option>
+                                        <option value="normal_laughter.wav">Woman Laughing (7s)</option>
+                                        <option value="normal_typewriter.wav">Typewriter Sounds (14s)</option>
+                                    </optgroup>
+                                </select>
+                                <button id="btn-play-sample" class="btn primary btn-sm">Trigger</button>
+                            </div>
+                            <audio id="demo-audio-player" style="display:none;"></audio>
+                        </div>
+
+                        <div class="control-group">
+                            <label>Upload & Analyze Custom Audio</label>
+                            <div class="upload-container">
+                                <input type="file" id="audio-upload" accept="audio/*" style="display: none;">
+                                <button id="btn-upload-trigger" class="btn btn-sm btn-outline">Choose File</button>
+                                <span id="upload-filename" class="upload-filename">No file selected</span>
+                                <button id="btn-analyze-upload" class="btn primary btn-sm" disabled>Analyze</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Alerts, History, Escalation Workflow -->
+            <section class="right-panel">
+                <!-- Alerts / Confidence metrics -->
+                <div class="glass-card alerts-card" id="alerts-card">
+                    <div class="card-header">
+                        <h2>Distress Event Classifier</h2>
+                    </div>
+                    
+                    <div class="threat-meters">
+                        <div class="meter-row" id="meter-scream">
+                            <div class="meter-info">
+                                <span>Screaming / Panic</span>
+                                <span class="meter-val">0%</span>
+                            </div>
+                            <div class="meter-bar-bg">
+                                <div class="meter-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="meter-row" id="meter-glass">
+                            <div class="meter-info">
+                                <span>Glass Shattering</span>
+                                <span class="meter-val">0%</span>
+                            </div>
+                            <div class="meter-bar-bg">
+                                <div class="meter-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="meter-row" id="meter-gunshot">
+                            <div class="meter-info">
+                                <span>Gunshot / Explosion</span>
+                                <span class="meter-val">0%</span>
+                            </div>
+                            <div class="meter-bar-bg">
+                                <div class="meter-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="meter-row" id="meter-crying">
+                            <div class="meter-info">
+                                <span>Sobbing / Crying</span>
+                                <span class="meter-val">0%</span>
+                            </div>
+                            <div class="meter-bar-bg">
+                                <div class="meter-bar-fill" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="threat-alert-banner" id="threat-alert-banner">
+                        <div class="alert-icon">⚠</div>
+                        <div>
+                            <h3 id="alert-title">DISTRESS EVENT DETECTED</h3>
+                            <p id="alert-subtitle">Type: SCREAM | Confidence: 94%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated Workflow Logs -->
+                <div class="glass-card logs-card">
+                    <div class="card-header">
+                        <h2>Emergency Dispatch Escalation</h2>
+                    </div>
+                    <div class="log-stream" id="log-stream">
+                        <div class="log-line system-msg">[System] Ready to capture environment audio.</div>
+                    </div>
+                </div>
+
+                <!-- Threat History Table -->
+                <div class="glass-card history-card">
+                    <div class="card-header">
+                        <h2>Threat Detection History</h2>
+                        <button id="btn-clear-history" class="btn btn-sm btn-outline" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">Clear Logs</button>
+                    </div>
+                    <div class="history-table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Threat Event</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <tr>
+                                    <td colspan="3" style="text-align: center; color: #64748b; padding: 1rem;">No threats recorded yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
