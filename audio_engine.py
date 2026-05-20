@@ -32,6 +32,8 @@ class YAMNetClassifier:
             "Crying, sobbing": "Distress/Crying",
             "Crying": "Distress/Crying",
             "Sobbing": "Distress/Crying",
+            "Baby cry, infant cry": "Distress/Crying",
+            "Whimper": "Distress/Crying",
             "Glass": "Glass Breaking",
             "Shatter": "Glass Breaking",
             "Glass breaking": "Glass Breaking",
@@ -46,7 +48,7 @@ class YAMNetClassifier:
         # Category-specific confidence thresholds to prevent false positives on everyday sounds
         self.thresholds = {
             "Scream": 0.30,
-            "Distress/Crying": 0.30,
+            "Distress/Crying": 0.20,
             "Glass Breaking": 0.35,
             "Gunshot": 0.20,
             "Siren/Alarm": 0.45
