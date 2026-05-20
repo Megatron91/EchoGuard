@@ -8,7 +8,17 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from audio_engine import YAMNetClassifier
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="AI-Powered Personal Safety Audio Detection Demo")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Directories setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -43,6 +43,7 @@ const audioPlayer = document.getElementById("demo-audio-player");
 const simulatedPhrases = document.querySelectorAll(".simulated-phrase");
 const historyTableBody = document.getElementById("history-table-body");
 const btnClearHistory = document.getElementById("btn-clear-history");
+const backendHostInput = document.getElementById("backend-host");
 
 // Custom Upload elements
 const btnUploadTrigger = document.getElementById("btn-upload-trigger");
@@ -79,13 +80,30 @@ window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 drawSilence();
 
+// Initialize Backend Host Input
+let savedHost = localStorage.getItem("aiva_backend_host");
+if (!savedHost) {
+    savedHost = window.location.host || "127.0.0.1:8080";
+}
+if (backendHostInput) {
+    backendHostInput.value = savedHost;
+    backendHostInput.addEventListener("change", () => {
+        const val = backendHostInput.value.trim();
+        localStorage.setItem("aiva_backend_host", val);
+        appendLog("System", `Backend host set to: ${val}. Reconnecting...`, "system-msg");
+        if (socket) {
+            socket.close();
+        }
+    });
+}
+
 // Initialize WebSocket Connection
 function initWebSocket() {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host = window.location.host;
+    const host = localStorage.getItem("aiva_backend_host") || window.location.host || "127.0.0.1:8080";
     const wsUrl = `${protocol}//${host}/ws`;
     
-    appendLog("System", "Connecting to AIVA server...", "system-msg");
+    appendLog("System", `Connecting to AIVA server (${wsUrl})...`, "system-msg");
     
     socket = new WebSocket(wsUrl);
     
@@ -530,7 +548,10 @@ btnPlaySample.addEventListener("click", async () => {
     appendLog("Simulation", `Triggering audio play sample: ${filename}`, "system-msg");
     
     // Play audio locally through browser speakers so user can hear it
-    const url = `/api/samples/${filename}`;
+    const host = localStorage.getItem("aiva_backend_host") || window.location.host || "127.0.0.1:8080";
+    const httpProtocol = window.location.protocol === "https:" ? "https:" : "http:";
+    const baseUrl = `${httpProtocol}//${host}`;
+    const url = `${baseUrl}/api/samples/${filename}`;
     audioPlayer.src = url;
     audioPlayer.play();
     
