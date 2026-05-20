@@ -89,7 +89,11 @@ if (!savedHost || savedHost.includes("appwrite.network")) {
 if (backendHostInput) {
     backendHostInput.value = savedHost;
     backendHostInput.addEventListener("change", () => {
-        const val = backendHostInput.value.trim();
+        let val = backendHostInput.value.trim();
+        // Automatically sanitize if user pastes a full URL (strip protocol and trailing slashes)
+        val = val.replace(/^https?:\/\//i, '').replace(/^wss?:\/\//i, '').replace(/\/+$/, '');
+        backendHostInput.value = val;
+        
         localStorage.setItem("aiva_backend_host", val);
         appendLog("System", `Backend host set to: ${val}. Reconnecting...`, "system-msg");
         if (socket) {
