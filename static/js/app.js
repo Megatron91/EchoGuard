@@ -1,4 +1,4 @@
-// AEGIS SAFETY DASHBOARD - CLIENT APPLICATION LOGIC
+// AIVA SAFETY DASHBOARD - CLIENT APPLICATION LOGIC
 let socket = null;
 let audioContext = null;
 let microphoneStream = null;
@@ -85,7 +85,7 @@ function initWebSocket() {
     const host = window.location.host;
     const wsUrl = `${protocol}//${host}/ws`;
     
-    appendLog("System", "Connecting to Aegis AI server...", "system-msg");
+    appendLog("System", "Connecting to AIVA server...", "system-msg");
     
     socket = new WebSocket(wsUrl);
     
